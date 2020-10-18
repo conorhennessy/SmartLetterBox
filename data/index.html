@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <title>SmartLetterBox</title>
+    </head>
+
+    <body>
+        <header id="header">
+            <h1>Smart Letter Box</h1>
+            <p>
+              <a class="button" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" rel="noopener">by Alex Hockly</a>
+            </p>
+        </header>
+       
+        <main>
+            <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Accelerometer</td>
+                    <td id="accelerometer_y">%accelerometer_y%</td>
+                  </tr>
+                  <tr>
+                    <td>Gyro Threshold</td>
+                    <td id="gyroY_thresh">%gyroY_thresh%</td>
+                  </tr>
+                  <tr>
+                    <td>Gyro Diff</td>
+                    <td id="gyro_y_diff">%gyro_y_diff%</td>
+                  </tr>
+                </tbody>
+            </table>
+            
+            <form>
+                <h2>Adjust Gyro Threshold:</h2>
+                  <input name="gyroY_thresh" type="range" min="1000" max="15000" step="1000" value="10000" oninput="thresh.value = this.value">
+                  <input class="thresh" id="thresh" name="gyroY_thresh" type="number" value="10000">
+                  <button class="button" id="gyro_thresh_input" type="submit" value="Submit">update</button>
+            </form>
+        </main>
+    </body>
+    <script>
+    setInterval(function ( ) {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          document.getElementById("accelerometer_y").innerHTML = this.responseText;
+        }
+      };
+      xhttp.open("GET", "/accelerometer_y", true);
+      xhttp.send();
+    }, 1000);
+
+    setInterval(function ( ) {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          document.getElementById("gyroY_thresh").innerHTML = this.responseText;
+        }
+      };
+      xhttp.open("GET", "/gyroY_thresh", true);
+      xhttp.send();
+    }, 1000);
+
+    setInterval(function ( ) {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          document.getElementById("gyro_y_diff").innerHTML = this.responseText;
+        }
+      };
+      xhttp.open("GET", "/gyro_y_diff", true);
+      xhttp.send();
+    }, 1000);
+    </script>
+</html>

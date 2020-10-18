@@ -1,22 +1,19 @@
 #include <ESP8266WiFi.h>        // Library to connect to Wi-Fi
-#include <ESP8266HTTPClient.h>  // Library to send http
-#include <ESP8266WebServer.h>   // esp8266 Arduino webserver lib
+#include <ESPAsyncTCP.h>        //
+#include <ESPAsyncWebServer.h>  //
 #include <ESP8266mDNS.h>        // Include the mDNS library
 #include <EEPROM.h>             // use the 512kb of non-volitile memory
 #include <Wire.h>               // communicate with I2C devices.
 
 // Replace with your network credentials
-const char* ssid = "TrilliumKillinEm";
-const char* password = "Despacito2";
+const char* ssid = "REPLACE_WITH_YOUR_SSID";
+const char* password = "REPLACE_WITH_YOUR_PASSWORD";
 const char* mDnsName = "Letterbox";
-
-String ip;
 
 String ifttt_url = "http://maker.ifttt.com/trigger/postbox/with/key/"; //KEY INTENTIONALLY LEFT OUT
 
-String html_index_head = "<!DOCTYPE html><html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Smart letterbox</title></head>";
 
-ESP8266WebServer server(80);
+AsyncWebServer server(80);
 
 struct config_t
 {
@@ -125,8 +122,21 @@ void sendNotification(){
     Serial.println("response was: " + (String) httpResponseCode);
 }
 
-void handleRoot() {
+//Replace placeholders with values
+String processor(const String& var){
+  Serial.println(var);
+  if (var == "accelerometer_y") {
+    return convert_int16_to_str(accelerometer_y).c_str();
+  }
+  else if (var == "gyroY_thresh") {
+    return convert_int16_to_str(configuration.gyroY_thresh).c_str();
+  }
+  else if (var == "gyro_y_diff") {
+    return convert_int16_to_str(gyro_y_diff).c_str();
+  }
+}
 
+void handleRoot() {
   if(server.argName(0) == "gyroY_thresh"){
     configuration.gyroY_thresh = server.arg(0).toInt();
     Serial.print("SETTING GYRO Y THRESH TO: ");
@@ -134,21 +144,34 @@ void handleRoot() {
     Serial.println();
     EEPROM_writeAnything(80, configuration);
   }
+    
+  // Route for root / web page
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/index.html", String(), false, processor);
+  });
   
-  String message = html_index_head;
-  message += "<body>";
-  message += "<h1>Letter box</h1>";
-  message += "accelerometer Y: " + (String)convert_int16_to_str(accelerometer_y);
-  message += "<br>";
-  message += "gyro Y threshold:  " + (String)convert_int16_to_str(configuration.gyroY_thresh);
-  message += "<br>";
-  message += "gyro Y diff:  " + (String)convert_int16_to_str(gyro_y_diff);
-  message += "<form><input name=\"gyroY_thresh\" type=\"text\"  />";
-  message += "<button id=\"gyro_thresh_input\" type=\"submit\" value=\"Submit\">set gyro threshold</button></form>";
-  message += "<br><br><br>";
-  message += WiFi.macAddress();
-  
-  server.send(200, "text/html", message);
+  // Route to load style.css file
+  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/style.css", "text/css");
+  });
+
+  //Route to get accelerometer_y
+    server.on("/accelerometer_y", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/plain", convert_int16_to_str(accelerometer_y).c_str());
+  });
+
+  //Route to get gyroY_thresh
+  server.on("/gyroY_thresh", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/plain", convert_int16_to_str(configuration.gyroY_thresh).c_str());
+  });
+
+  //Route to get gyro_y_diff
+  server.on("/gyro_y_diff", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/plain", convert_int16_to_str(gyro_y_diff).c_str());
+  });
+
+  //Start server
+  server.begin();
 }
 
 
@@ -190,7 +213,6 @@ void wifiSetup(){
   Serial.println("WiFi connected.");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-  server.begin();
   
   if (MDNS.begin(mDnsName)) {             // Start the mDNS responder for .local
     Serial.println("MDNS responder started");
