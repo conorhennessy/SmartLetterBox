@@ -51,10 +51,37 @@ void setup() {
   Serial.println("thresh: " + (String)configuration.gyroY_thresh);
   
   wifiSetup();
-  server.on("/", handleRoot);
-  server.begin();
-  ip = (String)WiFi.localIP();
+  // server.on("/", handleRoot);
+  // server.begin();
   Serial.print("got closed value of "); Serial.println(accelerometer_y);
+
+  // Route for root / web page
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/index.html", String(), false, processor);
+  });
+  
+  // Route to load style.css file
+  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/style.css", "text/css");
+  });
+
+  //Route to get accelerometer_y
+    server.on("/accelerometer_y", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/plain", convert_int16_to_str(accelerometer_y).c_str());
+  });
+
+  //Route to get gyroY_thresh
+  server.on("/gyroY_thresh", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/plain", convert_int16_to_str(configuration.gyroY_thresh));
+  });
+
+  //Route to get gyro_y_diff
+  server.on("/gyro_y_diff", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/plain", convert_int16_to_str(gyro_y_diff));
+  });
+  
+  // Start server
+  server.begin();
 }
 
 void loop() {
@@ -73,7 +100,7 @@ void loop() {
   }
             
   MDNS.update();
-  server.handleClient();
+  // server.handleClient();
   delay(100);
 }
 
@@ -137,43 +164,15 @@ String processor(const String& var){
   }
 }
 
-void handleRoot() {
-  if(server.argName(0) == "gyroY_thresh"){
-    configuration.gyroY_thresh = server.arg(0).toInt();
-    Serial.print("SETTING GYRO Y THRESH TO: ");
-    Serial.println(configuration.gyroY_thresh);
-    Serial.println();
-    EEPROM_writeAnything(80, configuration);
-  }
-    
-  // Route for root / web page
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/index.html", String(), false, processor);
-  });
-  
-  // Route to load style.css file
-  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/style.css", "text/css");
-  });
-
-  //Route to get accelerometer_y
-    server.on("/accelerometer_y", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/plain", convert_int16_to_str(accelerometer_y));
-  });
-
-  //Route to get gyroY_thresh
-  server.on("/gyroY_thresh", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/plain", convert_int16_to_str(configuration.gyroY_thresh));
-  });
-
-  //Route to get gyro_y_diff
-  server.on("/gyro_y_diff", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/plain", convert_int16_to_str(gyro_y_diff));
-  });
-
-  //Start server
-  server.begin();
-}
+//void handleRoot() {
+//  if(server.argName(0) == "gyroY_thresh"){
+//    configuration.gyroY_thresh = server.arg(0).toInt();
+//    Serial.print("SETTING GYRO Y THRESH TO: ");
+//    Serial.println(configuration.gyroY_thresh);
+//    Serial.println();
+//    EEPROM_writeAnything(80, configuration);
+//  }
+//}
 
 
 
