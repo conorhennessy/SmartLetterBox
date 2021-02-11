@@ -67,7 +67,7 @@ void setup() {
 
   //Route to get accelerometer_y
     server.on("/accelerometer_y", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/plain", convert_int16_to_str(accelerometer_y).c_str());
+    request->send_P(200, "text/plain", convert_int16_to_str(accelerometer_y));
   });
 
   //Route to get gyroY_thresh
