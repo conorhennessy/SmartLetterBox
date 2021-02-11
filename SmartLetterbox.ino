@@ -127,13 +127,13 @@ void sendNotification(){
 String processor(const String& var){
   Serial.println(var);
   if (var == "accelerometer_y") {
-    return convert_int16_to_str(accelerometer_y).c_str();
+    return convert_int16_to_str(accelerometer_y);
   }
   else if (var == "gyroY_thresh") {
-    return convert_int16_to_str(configuration.gyroY_thresh).c_str();
+    return convert_int16_to_str(configuration.gyroY_thresh);
   }
   else if (var == "gyro_y_diff") {
-    return convert_int16_to_str(gyro_y_diff).c_str();
+    return convert_int16_to_str(gyro_y_diff);
   }
 }
 
@@ -158,17 +158,17 @@ void handleRoot() {
 
   //Route to get accelerometer_y
     server.on("/accelerometer_y", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/plain", convert_int16_to_str(accelerometer_y).c_str());
+    request->send_P(200, "text/plain", convert_int16_to_str(accelerometer_y));
   });
 
   //Route to get gyroY_thresh
   server.on("/gyroY_thresh", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/plain", convert_int16_to_str(configuration.gyroY_thresh).c_str());
+    request->send_P(200, "text/plain", convert_int16_to_str(configuration.gyroY_thresh));
   });
 
   //Route to get gyro_y_diff
   server.on("/gyro_y_diff", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send_P(200, "text/plain", convert_int16_to_str(gyro_y_diff).c_str());
+    request->send_P(200, "text/plain", convert_int16_to_str(gyro_y_diff));
   });
 
   //Start server
